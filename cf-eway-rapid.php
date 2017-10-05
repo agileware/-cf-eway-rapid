@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Plugin Name: Caldera Forms eWAY Rapid
- * Plugin URI: https://FIXME
- * Description: eWay Rapid checkout processor for Caldera Forms.
+ * Plugin Name: Caldera Forms eWAY Rapid API Payment Processor
+ * Plugin URI: https://bitbucket.org/agileware/cf-eway-rapid
+ * Description: eWay Rapid API payment processor for Caldera Forms.
  * Version: 1.0.0
  * Author: Agileware
- * Author URI: https://agileware.com.au/
+ * Author URI: https://agileware.com.au
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
