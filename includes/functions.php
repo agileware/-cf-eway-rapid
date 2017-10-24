@@ -22,10 +22,41 @@ function cf_eway_rapid_register_processor($processors){
 				'currency_code',
 				'amount',
 				'payment_status',
+				'firstname',
+				'lastname',
+				'name',
+				'email',
+				'street1',
+				'street2',
+				'city',
+				'state',
+				'zip',
+				'country_code',
+				'phone',
+				'shipping_method',
+				'shipping_firstname',
+				'shipping_lastname',
+				'shipping_name',
+				'shipping_street1',
+				'shipping_street2',
+				'shipping_city',
+				'shipping_state',
+				'shipping_country_code',
+				'shipping_zip',
+				'shipping_email',
+				'shipping_phone',
 		)
 	);
 	return $processors;
 
+}
+
+function getFinalAmountOfInvoice($settings, $form) {
+	$amount = Caldera_Forms::get_field_data( $settings["price"], $form );
+	$qty = ((!empty($settings['qty']) && !empty(Caldera_Forms::get_field_data( $settings['qty'], $form ))) ? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1);
+	$tax = ((!empty($settings['tax']) && !empty(Caldera_Forms::get_field_data( $settings["tax"], $form ))) ? (int) Caldera_Forms::get_field_data( $settings["tax"], $form ) : 0);
+	$amount = ($amount * $qty) + $tax;
+	return ($amount * 100);
 }
 
 /**
@@ -58,19 +89,26 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 		                $apiEndPoint = \Eway\Rapid\Client::ENDPOINT_SANDBOX;
 		        }
 		        $client = \Eway\Rapid::createClient($settings["key"], $settings["password"], $apiEndPoint);
+
+						$finalAmount = getFinalAmountOfInvoice($settings, $form);
+
 		        $transaction = [
 		                'RedirectUrl' => $returnurl . '?'.http_build_query( $queryvars ),
 		                'CancelUrl' => $returnurl . '?'.http_build_query( array_merge($queryvars, array('ew_cancel' => 'true') ) ),
 		                'TransactionType' => \Eway\Rapid\Enum\TransactionType::PURCHASE,
 		                'Payment' => [
-		                        'TotalAmount' =>  (Caldera_Forms::get_field_data( $settings["price"], $form ) * 100),
+		                        'TotalAmount' =>  $finalAmount,
 		                        'CurrencyCode' => $settings["currency"],
+														'InvoiceNumber' => Caldera_Forms::get_field_data( $settings["invoiceNumber"], $form ),
+										        'InvoiceDescription' => Caldera_Forms::get_field_data( $settings["invoiceDescription"], $form ),
+										        'InvoiceReference' => Caldera_Forms::get_field_data( $settings["invoiceReference"], $form ),
 		                ],
 		                'Items' => [
 		                        [
 		                                'Description' => $settings["desc"],
-						'UnitCost' => (Caldera_Forms::get_field_data( $settings["price"], $form ) * 100),
+																		'UnitCost' => (Caldera_Forms::get_field_data( $settings["price"], $form ) * 100),
 		                                'Quantity' => ( !empty( $settings['qty'] ) ? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1 ),
+																		'Tax' => ( !empty( $settings['tax'] ) ? (int) (Caldera_Forms::get_field_data( $settings["tax"], $form )*100) : 0 ),
 		                        ],
 		                ],
 		        ];
@@ -104,16 +142,16 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 function cf_eway_rapid_setup_payment($config, $form) {
 	global $transdata;
 	if(!empty($_GET['ew_cancel'])){
-		
+
 		if(!empty($transdata['eway_rapid'])){
 			unset($transdata['eway_rapid']);
 		}
-		
+
 		$return = array(
 			'type'	=> 'error',
 			'note'	=> 'Transaction has been canceled'
 		);
-		
+
 		return $return;
 
 	} else{
@@ -141,7 +179,7 @@ function cf_eway_rapid_setup_payment($config, $form) {
 			    $transdata['type'] 		= 'error';
 			}
 
-		} 
+		}
 
 		if(empty($transdata['eway_rapid']['checkout'])) {
 
@@ -169,24 +207,39 @@ function cf_eway_rapid_process_payment($config, $form) {
 	if(!empty($transdata['eway_rapid']['result'])){
 		return $transdata['eway_rapid']['result'];
 	}
-	
+
 	if(!empty($transdata['eway_rapid']['checkout'])) {
 		$transactionResponse = $transdata['eway_rapid']['checkout'];
-                $returns = array(
+
+    $returns = array(
 			"transaction_id" 		=> 	$transactionResponse->TransactionID,
 			'currency_code'			=>	$config["currency"],
 			'amount'            		=>	($transactionResponse->TotalAmount/100),
 			'payment_status'		=>	($transactionResponse->TransactionStatus) ? "Completed" : "Failed",
-			'email'				=>	$transactionResponse->Email,
 			'firstname'			=>	$transactionResponse->Customer->FirstName,
 			'lastname'			=>	$transactionResponse->Customer->LastName,
-			'name'				=>	$transactionResponse->ShippingAddress->FirstName . " " . $transactionResponse->ShippingAddress->LastName,
-			'street'			=>	$transactionResponse->ShippingAddress->Street1 . " " . $transactionResponse->ShippingAddress->Street2,
-			'city'				=>	$transactionResponse->ShippingAddress->City,
-			'state'				=>	$transactionResponse->ShippingAddress->State,
-			'zip'				=>	$transactionResponse->ShippingAddress->PostalCode,
-			'country_code'			=>	$transactionResponse->ShippingAddress->Country,
-                );
+			'name'				=>	$transactionResponse->Customer->FirstName . " " . $transactionResponse->Customer->LastName,
+			'email'				=>	$transactionResponse->Customer->Email,
+			'street1'			=>	$transactionResponse->Customer->Street1,
+			'street2'			=>	$transactionResponse->Customer->Street2,
+			'city'				=>	$transactionResponse->Customer->City,
+			'state'				=>	$transactionResponse->Customer->State,
+			'zip'				=>	$transactionResponse->Customer->PostalCode,
+			'country_code'			=>	$transactionResponse->Customer->Country,
+			'phone'			=>	$transactionResponse->Customer->Phone,
+			'shipping_method'			=>	$transactionResponse->ShippingAddress->ShippingMethod,
+			'shipping_firstname'			=>	$transactionResponse->ShippingAddress->FirstName,
+			'shipping_lastname'			=>	$transactionResponse->ShippingAddress->LastName,
+			'shipping_name'				=>	$transactionResponse->ShippingAddress->FirstName . " " . $transactionResponse->ShippingAddress->LastName,
+			'shipping_email'				=>	$transactionResponse->ShippingAddress->Email,
+			'shipping_street1'			=>	$transactionResponse->ShippingAddress->Street1,
+			'shipping_street2'			=>	$transactionResponse->ShippingAddress->Street2,
+			'shipping_city'				=>	$transactionResponse->ShippingAddress->City,
+			'shipping_state'				=>	$transactionResponse->ShippingAddress->State,
+			'shipping_zip'				=>	$transactionResponse->ShippingAddress->PostalCode,
+			'shipping_country_code'			=>	$transactionResponse->ShippingAddress->Country,
+			'shipping_phone'			=>	$transactionResponse->ShippingAddress->Phone,
+    );
 
 		$transdata['eway_rapid']['result'] = $returns;
 

@@ -13,15 +13,18 @@ if( ! is_ssl() ){
 	</div>
 <?php } ?>
 
+<!-- Contact ID -->
+<h2><?php _e( 'Required Fields', 'caldera-forms-civicrm' ); ?></h2>
+
 <div class="caldera-config-group">
 	<label>API Key</label>
-	<div class="caldera-config-field">		
+	<div class="caldera-config-field">
 		<input type="text" id="{{_id}}_key" class="block-input required field-config" name="{{_name}}[key]" value="{{key}}" required>
 	</div>
 </div>
 <div class="caldera-config-group">
 	<label>API Password</label>
-	<div class="caldera-config-field">		
+	<div class="caldera-config-field">
 		<input type="text" id="{{_id}}_password" class="block-input required field-config" name="{{_name}}[password]" value="{{password}}" required>
 	</div>
 </div>
@@ -36,13 +39,13 @@ if( ! is_ssl() ){
 <div class="caldera-config-group">
 	<label>Price Field</label>
 	<div class="caldera-config-field">
-		{{{_field slug="price" type="calculation,text,hidden" exclude="system"}}}
+		{{{_field slug="price" type="calculation,text,hidden" required="true" exclude="system"}}}
 	</div>
 </div>
 <div class="caldera-config-group">
 	<label>Currency</label>
 	<div class="caldera-config-field">
-		<select id="{{_id}}_currency" class="required field-config" name="{{_name}}[currency]">
+		<select id="{{_id}}_currency" class="required field-config" name="{{_name}}[currency]" required>
 			<option value="USD" {{#is currency value="USD"}}selected="selected"{{/is}}>USD</option>
 			<option value="AUD" {{#is currency value="AUD"}}selected="selected"{{/is}}>AUD</option>
 			<option value="BRL" {{#is currency value="BRL"}}selected="selected"{{/is}}>BRL</option>
@@ -71,22 +74,53 @@ if( ! is_ssl() ){
 		</select>
 	</div>
 </div>
+
+<h2><?php _e( 'Other Fields', 'caldera-forms-civicrm' ); ?></h2>
+
+<div class="caldera-config-group">
+	<label>Invoice Number</label>
+	<div class="caldera-config-field">
+		{{{_field slug="invoiceNumber" type="calculation,text,hidden" exclude="system"}}}
+	</div>
+</div>
+
+<div class="caldera-config-group">
+	<label>Invoice Description</label>
+	<div class="caldera-config-field">
+		{{{_field slug="invoiceDescription" type="calculation,text,hidden" exclude="system"}}}
+	</div>
+</div>
+
+<div class="caldera-config-group">
+	<label>Invoice Reference</label>
+	<div class="caldera-config-field">
+		{{{_field slug="invoiceReference" type="calculation,text,hidden" exclude="system"}}}
+	</div>
+</div>
+
 <div class="caldera-config-group">
 	<label>Item Name</label>
-	<div class="caldera-config-field">		
+	<div class="caldera-config-field">
 		<input type="text" id="{{_id}}_name" class="block-input field-config" name="{{_name}}[name]" value="{{name}}">
 	</div>
 </div>
 <div class="caldera-config-group">
 	<label>Item Description</label>
-	<div class="caldera-config-field">		
+	<div class="caldera-config-field">
 		<input type="text" id="{{_id}}_desc" class="block-input field-config" name="{{_name}}[desc]" value="{{desc}}">
 	</div>
 </div>
 
 <div class="caldera-config-group">
-	<label>Quantity Field</label>
+	<label>Quantity</label>
 	<div class="caldera-config-field">
 		{{{_field slug="qty" exclude="system"}}}
+	</div>
+</div>
+
+<div class="caldera-config-group">
+	<label>Tax</label>
+	<div class="caldera-config-field">
+		{{{_field slug="tax" exclude="system"}}}
 	</div>
 </div>
