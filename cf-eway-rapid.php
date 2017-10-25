@@ -9,6 +9,7 @@
  * Author URI: https://agileware.com.au
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Bitbucket Plugin URI: https://github.com/CalderaWP/Caldera-Forms/
  */
 
 
@@ -17,7 +18,7 @@ define( 'CF_EWAY_RAPID_PATH',  plugin_dir_path( __FILE__ ) );
 define( 'CF_EWAY_RAPID_URL',  plugin_dir_url( __FILE__ ) );
 define( 'CF_EWAY_RAPID_VER', '1.0.0' );
 
-// Registering eWAY Rapid as a Caldera processor. 
+// Registering eWAY Rapid as a Caldera processor.
 add_filter('caldera_forms_get_form_processors', 'cf_eway_rapid_register_processor');
 
 // filter to prepare redirect URL before form starts processing
