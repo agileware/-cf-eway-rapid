@@ -3,6 +3,8 @@
  * eWAY Processor setup template.
  *
  */
+global $customer_fields;
+global $shipping_fields;
 
 if( ! is_ssl() ){
 ?>
@@ -75,7 +77,7 @@ if( ! is_ssl() ){
 	</div>
 </div>
 
-<h2><?php _e( 'Other Fields', 'caldera-forms-civicrm' ); ?></h2>
+<h2><?php _e( 'Invoice Fields', 'caldera-forms-civicrm' ); ?></h2>
 
 <div class="caldera-config-group">
 	<label>Invoice Number</label>
@@ -99,19 +101,6 @@ if( ! is_ssl() ){
 </div>
 
 <div class="caldera-config-group">
-	<label>Item Name</label>
-	<div class="caldera-config-field">
-		<input type="text" id="{{_id}}_name" class="block-input field-config" name="{{_name}}[name]" value="{{name}}">
-	</div>
-</div>
-<div class="caldera-config-group">
-	<label>Item Description</label>
-	<div class="caldera-config-field">
-		<input type="text" id="{{_id}}_desc" class="block-input field-config" name="{{_name}}[desc]" value="{{desc}}">
-	</div>
-</div>
-
-<div class="caldera-config-group">
 	<label>Quantity</label>
 	<div class="caldera-config-field">
 		{{{_field slug="qty" exclude="system"}}}
@@ -124,3 +113,35 @@ if( ! is_ssl() ){
 		{{{_field slug="tax" exclude="system"}}}
 	</div>
 </div>
+
+<h2><?php _e( 'Customer Details Fields', 'caldera-forms-civicrm' ); ?></h2>
+
+<?php
+	foreach($customer_fields["keys"] as $index => $customer_field_key) {
+		$customer_field_label = $customer_fields["labels"][$index];
+		?>
+			<div class="caldera-config-group">
+				<label><?php echo $customer_field_label ?></label>
+				<div class="caldera-config-field">
+					{{{_field slug="<?php echo $customer_field_key ?>" exclude="system"}}}
+				</div>
+			</div>
+		<?php
+	}
+?>
+
+<h2><?php _e( 'Shipping Address Fields', 'caldera-forms-civicrm' ); ?></h2>
+
+<?php
+	foreach($shipping_fields["keys"] as $index => $shipping_field_key) {
+		$shipping_field_label = $shipping_fields["labels"][$index];
+		?>
+			<div class="caldera-config-group">
+				<label><?php echo $shipping_field_label ?></label>
+				<div class="caldera-config-field">
+					{{{_field slug="<?php echo $shipping_field_key ?>" exclude="system"}}}
+				</div>
+			</div>
+		<?php
+	}
+?>

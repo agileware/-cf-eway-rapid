@@ -105,13 +105,15 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 		                ],
 		                'Items' => [
 		                        [
-		                                'Description' => $settings["desc"],
 																		'UnitCost' => (Caldera_Forms::get_field_data( $settings["price"], $form ) * 100),
 		                                'Quantity' => ( !empty( $settings['qty'] ) ? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1 ),
 																		'Tax' => ( !empty( $settings['tax'] ) ? (int) (Caldera_Forms::get_field_data( $settings["tax"], $form )*100) : 0 ),
 		                        ],
 		                ],
 		        ];
+
+						mapCustomerDetails($transaction, $form, $settings);
+						mapShippingDetails($transaction, $form, $settings);
 
 		        $response = $client->createTransaction(\Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction);
 
@@ -129,6 +131,42 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 		}
         }
 	return $transdata;
+}
+
+/**
+ * Map customer details with transaction
+ *
+ * @param array		$transaction			Transaction array of the payment by reference.
+ * @param array		$form			        Array of the complete form config structure
+ * @param array		$settings			    Config array of the processor
+ */
+function mapCustomerDetails(&$transaction, $form, $settings) {
+	global $customer_fields;
+	$transaction["Customer"] = array();
+	$keys = $customer_fields["ewaykeys"];
+	foreach ($keys as $index => $customer_field_eway_key) {
+		$customer_field_key = $customer_fields["keys"][$index];
+		$field_value = Caldera_Forms::get_field_data($settings[$customer_field_key], $form);
+		$transaction["Customer"][$customer_field_eway_key] = $field_value;
+	}
+}
+
+/**
+ * Map shipping details with transaction
+ *
+ * @param array		$transaction			Transaction array of the payment by reference.
+ * @param array		$form			        Array of the complete form config structure
+ * @param array		$settings			    Config array of the processor
+ */
+function mapShippingDetails(&$transaction, $form, $settings) {
+	global $shipping_fields;
+	$transaction["ShippingAddress"] = array();
+	$keys = $shipping_fields["ewaykeys"];
+	foreach ($keys as $index => $shipping_field_eway_key) {
+		$shipping_field_key = $shipping_fields["keys"][$index];
+		$field_value = Caldera_Forms::get_field_data($settings[$shipping_field_key], $form);
+		$transaction["ShippingAddress"][$shipping_field_eway_key] = $field_value;
+	}
 }
 
 /**

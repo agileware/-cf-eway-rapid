@@ -30,6 +30,9 @@ add_filter('caldera_forms_submit_return_redirect-eway_rapid', 'cf_eway_rapid_red
 // load eWAY SDK dependencies
 include_once CF_EWAY_RAPID_PATH . 'vendor/autoload.php';
 
+// Including eWAY Rapid helper file.
+include CF_EWAY_RAPID_PATH . 'includes/helper.php';
+
 // Including eWAY Rapid functions file.
 include CF_EWAY_RAPID_PATH . 'includes/functions.php';
 
