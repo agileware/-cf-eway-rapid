@@ -7,8 +7,6 @@
      "customer_title",
  		 "customer_first_name",
  		 "customer_last_name",
- 		 "customer_company_name",
- 		 "customer_job_description",
  		 "customer_street1",
  		 "customer_street2",
  		 "customer_city",
@@ -24,8 +22,6 @@
  		 "Title",
  		 "First Name",
  		 "Last Name",
- 		 "Company Name",
- 		 "Job Description",
  		 "Street1",
  		 "Street2",
  		 "City",
@@ -41,8 +37,6 @@
  		 "Title",
  		 "FirstName",
  		 "LastName",
- 		 "CompanyName",
- 		 "JobDescription",
  		 "Street1",
  		 "Street2",
  		 "City",
@@ -67,6 +61,7 @@
     "shipping_country",
     "shipping_postal_code",
     "shipping_phone",
+    "shipping_email",
   ),
   "labels" => array(
     "First Name",
@@ -78,6 +73,7 @@
     "Country",
     "Postal Code",
     "Phone",
+    "Email"
   ),
   "ewaykeys" => array(
     "FirstName",
@@ -89,6 +85,7 @@
     "Country",
     "PostalCode",
     "Phone",
+    "Email"
   )
 );
 ?>
