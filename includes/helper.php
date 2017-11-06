@@ -4,7 +4,6 @@
 
   $customer_fields = array(
  	 "keys"   => array(
-     "customer_title",
  		 "customer_first_name",
  		 "customer_last_name",
  		 "customer_street1",
@@ -14,12 +13,9 @@
  		 "customer_postal_code",
  		 "customer_country",
  		 "customer_phone",
- 		 "customer_mobile",
  		 "customer_email",
- 		 "customer_url",
  	 ),
  	 "labels" => array(
- 		 "Title",
  		 "First Name",
  		 "Last Name",
  		 "Street1",
@@ -29,12 +25,9 @@
  		 "Postal Code",
  		 "Country",
  		 "Phone",
- 		 "Mobile",
  		 "Email",
- 		 "Url"
  	 ),
  	 "ewaykeys" => array(
- 		 "Title",
  		 "FirstName",
  		 "LastName",
  		 "Street1",
@@ -44,9 +37,7 @@
  		 "PostalCode",
  		 "Country",
  		 "Phone",
- 		 "Mobile",
  		 "Email",
- 		 "Url"
  	 )
  );
 
