@@ -114,6 +114,7 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 
 						mapCustomerDetails($transaction, $form, $settings);
 						mapShippingDetails($transaction, $form, $settings);
+						setCustomerCountry($transaction, $form, $settings);
 
 		        $response = $client->createTransaction(\Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction);
 
@@ -148,6 +149,43 @@ function mapCustomerDetails(&$transaction, $form, $settings) {
 		$customer_field_key = $customer_fields["keys"][$index];
 		$field_value = Caldera_Forms::get_field_data($settings[$customer_field_key], $form);
 		$transaction["Customer"][$customer_field_eway_key] = $field_value;
+	}
+}
+
+/**
+ * Modify customer country from ID to ISO Code.
+ *
+ * @param array $transaction       Transaction array of the payment by reference.
+ * @param array $form              Array of the complete form config structure
+ * @param array $settings          Config array of the processor
+ */
+function setCustomerCountry(&$transaction, $form, $settings) {
+	if (isset($transaction['Customer']['Country']) && !empty($transaction['Customer']['Country'])) {
+		$countryISO = getCountryISOFromID($transaction['Customer']['Country']);
+		$transaction['Customer']['Country'] = $countryISO;
+	}
+	if (isset($transaction['ShippingAddress']['Country']) && !empty($transaction['ShippingAddress']['Country'])) {
+		$countryISO = getCountryISOFromID($transaction['ShippingAddress']['Country']);
+		$transaction['ShippingAddress']['Country'] = $countryISO;
+	}
+}
+
+
+/**
+ * Get country ISO code from its ID.
+ *
+ * @param $id
+ */
+function getCountryISOFromID($id) {
+	try {
+		$country = civicrm_api3('Country', 'getsingle', array(
+			'id' => $id
+		));
+		return $country['iso_code'];
+	}
+	catch (CiviCRM_API3_Exception $e) {
+		// Country not found, return blank.
+		return '';
 	}
 }
 
