@@ -115,6 +115,7 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 						mapCustomerDetails($transaction, $form, $settings);
 						mapShippingDetails($transaction, $form, $settings);
 						setCustomerCountry($transaction, $form, $settings);
+						setCustomerState($transaction, $form, $settings);
 
 		        $response = $client->createTransaction(\Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction);
 
@@ -167,6 +168,38 @@ function setCustomerCountry(&$transaction, $form, $settings) {
 	if (isset($transaction['ShippingAddress']['Country']) && !empty($transaction['ShippingAddress']['Country'])) {
 		$countryISO = getCountryISOFromID($transaction['ShippingAddress']['Country']);
 		$transaction['ShippingAddress']['Country'] = $countryISO;
+	}
+}
+
+
+/**
+ * Modify customer state from ID to Name.
+ *
+ * @param $transaction
+ * @param $form
+ * @param $settings
+ */
+function setCustomerState(&$transaction, $form, $settings) {
+	if (isset($transaction['Customer']['State']) && !empty($transaction['Customer']['State'])) {
+		$stateID = getStateAbrFromID($transaction['Customer']['State']);
+		$transaction['Customer']['State'] = $stateID;
+	}
+	if (isset($transaction['ShippingAddress']['State']) && !empty($transaction['ShippingAddress']['State'])) {
+		$stateID = getStateAbrFromID($transaction['ShippingAddress']['State']);
+		$transaction['ShippingAddress']['State'] = $stateID;
+	}
+}
+
+function getStateAbrFromID($id) {
+	try {
+		$state = civicrm_api3('StateProvince', 'getsingle', array(
+			'id' => $id
+		));
+		return $state['abbreviation'];
+	}
+	catch (CiviCRM_API3_Exception $e) {
+		// Country not found, return blank.
+		return '';
 	}
 }
 
