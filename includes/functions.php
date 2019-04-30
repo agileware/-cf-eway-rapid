@@ -110,6 +110,9 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 																		'Tax' => ( !empty( $settings['tax'] ) ? (int) (Caldera_Forms::get_field_data( $settings["tax"], $form )*100) : 0 ),
 		                        ],
 		                ],
+										'Capture' => TRUE,
+										'SaveCustomer' => TRUE,
+										'CustomerReadOnly' => TRUE,
 		        ];
 
 						mapCustomerDetails($transaction, $form, $settings);
