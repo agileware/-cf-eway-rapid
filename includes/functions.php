@@ -105,7 +105,7 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 		                ],
 		                'Items' => [
 		                        [
-																		'UnitCost' => (Caldera_Forms::get_field_data( $settings["price"], $form ) * 100),
+																		'UnitCost' => (Caldera_Forms::do_magic_tags( $settings["price"], $form ) * 100),
 		                                'Quantity' => ( !empty( $settings['qty'] ) ? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1 ),
 																		'Tax' => ( !empty( $settings['tax'] ) ? (int) (Caldera_Forms::get_field_data( $settings["tax"], $form )*100) : 0 ),
 		                        ],
@@ -114,6 +114,7 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 										'SaveCustomer' => TRUE,
 										'CustomerReadOnly' => TRUE,
 		        ];
+			Civi::log()->info( 'transaction: ' . print_r($transaction , TRUE ) );
 
 						mapCustomerDetails($transaction, $form, $settings);
 						mapShippingDetails($transaction, $form, $settings);
@@ -282,13 +283,15 @@ function cf_eway_rapid_setup_payment($config, $form) {
 			if ($transactionResponse->TransactionStatus) {
 			    $transdata['eway_rapid']['checkout'] = $transactionResponse;
 			} else {
-			    $errors = split(',', $transactionResponse->ResponseMessage);
+			    $errors = preg_split(',', $transactionResponse->ResponseMessage);
 			    $errorMessage = "Payment failed: ";
 			    foreach ($errors as $error) {
 				$errorMessage .= \Eway\Rapid::getMessage(trim($error))."<br>";
 			    }
 			    $transdata['note'] 		= $errorMessage;
 			    $transdata['type'] 		= 'error';
+			    $transdata['error'] = TRUE;
+			    return [];
 			}
 
 		}
@@ -371,7 +374,9 @@ function cf_eway_rapid_process_payment($config, $form) {
  */
 function cf_eway_rapid_redirect_toeway($url, $form, $config, $processid) {
 	global $transdata;
-	if(empty($transdata['eway_rapid']['checkout']) && !empty($transdata['eway_rapid']['response'])){
+	// need to check the type to prevent redirect looping, because eway will just redirect if the payment is failed
+	if($transdata['type'] != 'error'
+	   && empty($transdata['eway_rapid']['checkout']) && !empty($transdata['eway_rapid']['response'])){
 		$response = $transdata['eway_rapid']['response'];
 		return $response->SharedPaymentUrl;
 	}

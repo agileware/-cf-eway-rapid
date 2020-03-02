@@ -89,7 +89,7 @@ if( ! is_ssl() ){
 <div class="caldera-config-group">
 	<label>Invoice Description</label>
 	<div class="caldera-config-field">
-		{{{_field slug="invoiceDescription" type="calculation,text,hidden" exclude="system"}}}
+        <input type="text" id="{{_id}}_name" class="block-input field-config magic-tag-enabled caldera-field-bind" name="{{_name}}[invoiceDescription]" value="{{invoiceDescription}}">
 	</div>
 </div>
 
