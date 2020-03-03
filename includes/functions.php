@@ -114,7 +114,6 @@ function cf_eway_rapid_set_redirect_url($transdata, $form, $referrer, $processid
 										'SaveCustomer' => TRUE,
 										'CustomerReadOnly' => TRUE,
 		        ];
-			Civi::log()->info( 'transaction: ' . print_r($transaction , TRUE ) );
 
 						mapCustomerDetails($transaction, $form, $settings);
 						mapShippingDetails($transaction, $form, $settings);
