@@ -53,11 +53,11 @@ function cf_eway_rapid_register_processor( $processors ) {
 }
 
 function getFinalAmountOfInvoice( $settings, $form ) {
-	$amount = Caldera_Forms::get_field_data( $settings["price"], $form );
-	$qty    = ( ( ! empty( $settings['qty'] ) && ! empty( Caldera_Forms::get_field_data( $settings['qty'], $form ) ) )
-		? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1 );
-	$tax    = ( ( ! empty( $settings['tax'] ) && ! empty( Caldera_Forms::get_field_data( $settings["tax"], $form ) ) )
-		? (int) Caldera_Forms::get_field_data( $settings["tax"], $form ) : 0 );
+	$amount =  $settings["price"]? $settings['price'] : 0;
+	$qty    = ( ( ! empty( $settings['qty'] ) )
+		? (int) $settings['qty'] : 1 );
+	$tax    = ( ( ! empty( $settings['tax'] ) )
+		? (int) $settings["tax"] : 0 );
 	$amount = ( $amount * $qty ) + $tax;
 
 	return ( $amount * 100 );
@@ -87,14 +87,15 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 			$queryvars = array_merge( $referrer['query'], $queryvars );
 		}
 		if ( ! isset( $transdata['eway_rapid']['response'] ) ) {
-			$settings    = $transdata['eway_rapid']['config'];
+			$settings = $transdata['eway_rapid']['config'];
+			cf_eway_map_fields_to_processor( $settings, $form, $form_values );
 			$apiEndPoint = \Eway\Rapid\Client::ENDPOINT_PRODUCTION;
-			if ( $settings["sandbox"] ) {
+			if ( $form_values["sandbox"] ) {
 				$apiEndPoint = \Eway\Rapid\Client::ENDPOINT_SANDBOX;
 			}
-			$client = \Eway\Rapid::createClient( $settings["key"], $settings["password"], $apiEndPoint );
+			$client = \Eway\Rapid::createClient( $form_values["key"], $form_values["password"], $apiEndPoint );
 
-			$finalAmount = getFinalAmountOfInvoice( $settings, $form );
+			$finalAmount = getFinalAmountOfInvoice( $form_values, $form );
 
 			$transaction = [
 				'RedirectUrl'      => $returnurl . '?' . http_build_query( $queryvars ),
@@ -103,18 +104,16 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 				'TransactionType'  => \Eway\Rapid\Enum\TransactionType::PURCHASE,
 				'Payment'          => [
 					'TotalAmount'        => $finalAmount,
-					'CurrencyCode'       => $settings["currency"],
-					'InvoiceNumber'      => Caldera_Forms::get_field_data( $settings["invoiceNumber"], $form ),
-					'InvoiceDescription' => Caldera_Forms::get_field_data( $settings["invoiceDescription"], $form ),
-					'InvoiceReference'   => Caldera_Forms::get_field_data( $settings["invoiceReference"], $form ),
+					'CurrencyCode'       => $form_values["currency"],
+					'InvoiceNumber'      => $form_values["invoiceNumber"],
+					'InvoiceDescription' => $form_values["invoiceDescription"],
+					'InvoiceReference'   => $form_values["invoiceReference"],
 				],
 				'Items'            => [
 					[
-						'UnitCost' => ( Caldera_Forms::do_magic_tags( $settings["price"], $form ) * 100 ),
-						'Quantity' => ( ! empty( $settings['qty'] )
-							? (int) Caldera_Forms::get_field_data( $settings['qty'], $form ) : 1 ),
-						'Tax'      => ( ! empty( $settings['tax'] )
-							? (int) ( Caldera_Forms::get_field_data( $settings["tax"], $form ) * 100 ) : 0 ),
+						'UnitCost' => ( $form_values["price"] * 100 ),
+						'Quantity' => ( ! empty( $form_values['qty'] ) ? (int) $form_values['qty'] : 1 ),
+						'Tax'      => ( ! empty( $form_values['tax'] ) ? (int) ( $form_values["tax"] * 100 ) : 0 ),
 					],
 				],
 				'Capture'          => TRUE,
