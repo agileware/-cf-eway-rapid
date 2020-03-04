@@ -64,6 +64,7 @@ function getFinalAmountOfInvoice( $settings, $form ) {
 }
 
 /**
+ * Hook caldera_forms_submit_return_transient_pre_process
  * Sets up eWAY Responsive Shared URL in the form submission for redirection
  *
  * @param array  $transdata array of the current submission transient
@@ -259,6 +260,7 @@ function mapShippingDetails( &$transaction, $form, $settings ) {
 }
 
 /**
+ * The pre processor for eway
  * Requests and redirects to eWAY for authentication
  *
  * @param array $config Config array of the processor
@@ -327,6 +329,7 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 }
 
 /**
+ * The processor function for eway
  * Processes the actual payment and returns the payment result
  *
  * @param array $config Config array of the processor
@@ -382,6 +385,7 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 }
 
 /**
+ * Hook caldera_forms_submit_return_redirect-eway_rapid
  * Filteres the redirect url and substitutes with eWAY auth if needed.
  *
  * @param array  $url       current redirect url
