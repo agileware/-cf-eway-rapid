@@ -22,29 +22,7 @@ function cf_eway_rapid_register_processor( $processors ) {
 			'currency_code',
 			'amount',
 			'payment_status',
-			'firstname',
-			'lastname',
-			'name',
-			'email',
-			'street1',
-			'street2',
-			'city',
-			'state',
-			'zip',
-			'country_code',
-			'phone',
-			'shipping_method',
-			'shipping_firstname',
-			'shipping_lastname',
-			'shipping_name',
-			'shipping_street1',
-			'shipping_street2',
-			'shipping_city',
-			'shipping_state',
-			'shipping_country_code',
-			'shipping_zip',
-			'shipping_email',
-			'shipping_phone',
+			'customer_token',
 		],
 	];
 
@@ -129,17 +107,9 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 
 			$response = $client->createTransaction( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
 
-			if ( ! $response->getErrors() ) {
-				$transdata['eway_rapid']['response'] = $response;
-			} else {
-				$errors = "";
-				foreach ( $response->getErrors() as $error ) {
-					$errors .= "Error: " . \Eway\Rapid::getMessage( $error ) . "<br>";
-				}
-
-				$transdata['note'] = $errors;
-				$transdata['type'] = 'error';
-			}
+			$transdata['eway_rapid']['response'] = $response;
+			global $processed_meta;
+			$transdata['processed_meta'] = $processed_meta;
 		}
 	}
 
@@ -308,9 +278,11 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 				}
 				$transdata['note']  = $errorMessage;
 				$transdata['type']  = 'error';
-				$transdata['error'] = TRUE;
 
-				return [];
+				// raise error or ignore
+				if ( ! $config['ignore_error'] ) {
+					return $transdata;
+				}
 			}
 
 		}
@@ -347,35 +319,11 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 		$transactionResponse = $transdata['eway_rapid']['checkout'];
 
 		$returns = [
-			"transaction_id"        => $transactionResponse->TransactionID,
-			'currency_code'         => $config["currency"],
-			'amount'                => ( $transactionResponse->TotalAmount / 100 ),
-			'payment_status'        => ( $transactionResponse->TransactionStatus ) ? "Completed" : "Failed",
-			'firstname'             => $transactionResponse->Customer->FirstName,
-			'lastname'              => $transactionResponse->Customer->LastName,
-			'name'                  => $transactionResponse->Customer->FirstName . " "
-			                           . $transactionResponse->Customer->LastName,
-			'email'                 => $transactionResponse->Customer->Email,
-			'street1'               => $transactionResponse->Customer->Street1,
-			'street2'               => $transactionResponse->Customer->Street2,
-			'city'                  => $transactionResponse->Customer->City,
-			'state'                 => $transactionResponse->Customer->State,
-			'zip'                   => $transactionResponse->Customer->PostalCode,
-			'country_code'          => $transactionResponse->Customer->Country,
-			'phone'                 => $transactionResponse->Customer->Phone,
-			'shipping_method'       => $transactionResponse->ShippingAddress->ShippingMethod,
-			'shipping_firstname'    => $transactionResponse->ShippingAddress->FirstName,
-			'shipping_lastname'     => $transactionResponse->ShippingAddress->LastName,
-			'shipping_name'         => $transactionResponse->ShippingAddress->FirstName . " "
-			                           . $transactionResponse->ShippingAddress->LastName,
-			'shipping_email'        => $transactionResponse->ShippingAddress->Email,
-			'shipping_street1'      => $transactionResponse->ShippingAddress->Street1,
-			'shipping_street2'      => $transactionResponse->ShippingAddress->Street2,
-			'shipping_city'         => $transactionResponse->ShippingAddress->City,
-			'shipping_state'        => $transactionResponse->ShippingAddress->State,
-			'shipping_zip'          => $transactionResponse->ShippingAddress->PostalCode,
-			'shipping_country_code' => $transactionResponse->ShippingAddress->Country,
-			'shipping_phone'        => $transactionResponse->ShippingAddress->Phone,
+			"transaction_id" => $transactionResponse->TransactionID,
+			'currency_code'  => $config["currency"],
+			'amount'         => ( $transactionResponse->TotalAmount / 100 ),
+			'payment_status' => ( $transactionResponse->TransactionStatus ),
+			'customer_token' => $transactionResponse->TokenCustomerID,
 		];
 
 		$transdata['eway_rapid']['result'] = $returns;

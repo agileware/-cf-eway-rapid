@@ -15,7 +15,15 @@ if( ! is_ssl() ){
 	</div>
 <?php } ?>
 
-<!-- Contact ID -->
+<div id="{{_id}}_ignore_error" class="caldera-config-group caldera-config-group-full">
+    <div class="caldera-config-field">
+        <label><input type="checkbox" name="{{_name}}[ignore_error]" value="1" {{#if ignore_error}}checked="checked"{{/if}}><?php _e( 'Ignore error.', 'cf-civicrm' ); ?></label>
+    </div>
+    <p class="description">
+        Tick if you have a processor after this want to check the transaction result.
+    </p>
+</div>
+
 <h2><?php _e( 'Required Fields', 'caldera-forms-civicrm' ); ?></h2>
 
 <div class="caldera-config-group">
