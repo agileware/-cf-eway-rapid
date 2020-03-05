@@ -27,6 +27,9 @@ add_filter('caldera_forms_submit_return_transient_pre_process', 'cf_eway_rapid_s
 // filter to add eWAY Rapid redirect
 add_filter('caldera_forms_submit_return_redirect-eway_rapid', 'cf_eway_rapid_redirect_toeway', 10, 4);
 
+// restore meta data when eway redirect back
+add_action( 'caldera_forms_submit_pre_process_start', 'cf_eway_rapid_restore_meta', 10, 3 );
+
 // load eWAY SDK dependencies
 include_once CF_EWAY_RAPID_PATH . 'vendor/autoload.php';
 

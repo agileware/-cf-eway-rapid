@@ -30,6 +30,21 @@ function cf_eway_rapid_register_processor( $processors ) {
 
 }
 
+/**
+ * Hook caldera_forms_submit_pre_process_start
+ *
+ *
+ * @param $form
+ * @param $referrer
+ * @param $process_id
+ */
+function cf_eway_rapid_restore_meta( $form, $referrer, $process_id ) {
+	global $processed_meta, $transdata;
+	if ( $_GET['cf_tp'] && $transdata['processed_meta'] ) {
+		$processed_meta = $transdata['processed_meta'];
+	}
+}
+
 function getFinalAmountOfInvoice( $settings, $form ) {
 	$amount =  $settings["price"]? $settings['price'] : 0;
 	$qty    = ( ( ! empty( $settings['qty'] ) )
@@ -58,7 +73,10 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 	}
 
 	if ( isset( $transdata['eway_rapid'] ) && $transdata['type'] === 'success' ) {
-		$returnurl = $referrer['scheme'] . '://' . $referrer['host'] . $referrer['path'];
+		$returnurl = $referrer['scheme'] . '://' .
+		             $referrer['host'] .
+		             ( in_array( $referrer['port'], [ '80', '443' ] ) ? '' : ':' . $referrer['port'] ) .
+		             $referrer['path'];
 		$queryvars = [
 			'cf_tp' => $processid,
 		];
@@ -271,6 +289,7 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 			if ( $transactionResponse->TransactionStatus ) {
 				$transdata['eway_rapid']['checkout'] = $transactionResponse;
 			} else {
+				// fixme the error not right
 				$errors       = preg_split( ',', $transactionResponse->ResponseMessage );
 				$errorMessage = "Payment failed: ";
 				foreach ( $errors as $error ) {
@@ -283,6 +302,8 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 				if ( ! $config['ignore_error'] ) {
 					return $transdata;
 				}
+				// keep the response for other processor
+				$transdata['eway_rapid']['checkout'] = $transactionResponse;
 			}
 
 		}
@@ -322,7 +343,7 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 			"transaction_id" => $transactionResponse->TransactionID,
 			'currency_code'  => $config["currency"],
 			'amount'         => ( $transactionResponse->TotalAmount / 100 ),
-			'payment_status' => ( $transactionResponse->TransactionStatus ),
+			'payment_status' => ( $transactionResponse->TransactionStatus ) ? 1 : 0,
 			'customer_token' => $transactionResponse->TokenCustomerID,
 		];
 
