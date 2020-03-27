@@ -93,39 +93,62 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 			}
 			$client = \Eway\Rapid::createClient( $form_values["key"], $form_values["password"], $apiEndPoint );
 
-			$finalAmount = getFinalAmountOfInvoice( $form_values, $form );
+			if ($form_values['customer']) {
+				// process eWay customer
+				$transaction = [
+					'RedirectUrl'      => $returnurl . '?' . http_build_query( $queryvars ),
+					'CancelUrl'        => $returnurl . '?' . http_build_query( array_merge( $queryvars,
+							[ 'ew_cancel' => 'true' ] ) ),
+					'TokenCustomerID' => $form_values['customerTokenID'],
+					'CustomerReadOnly' => TRUE,
+					'SaveCustomer'     => TRUE,
+				];
+				$customer = [];
+				// fixme these functions need to be improved
+				mapCustomerDetails( $customer, $form, $settings );
+				setCustomerCountry( $customer, $form, $settings );
+				setCustomerState( $customer, $form, $settings );
+				$transaction = array_merge( $transaction, $customer['Customer'] );
+				if ( $form_values['customerTokenID'] ) {
+					$response = $client->updateCustomer( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
+				} else {
+					$response = $client->createCustomer( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
+				}
+			} else {
+				// process eWay payment
+				$finalAmount = getFinalAmountOfInvoice( $form_values, $form );
 
-			$transaction = [
-				'RedirectUrl'      => $returnurl . '?' . http_build_query( $queryvars ),
-				'CancelUrl'        => $returnurl . '?' . http_build_query( array_merge( $queryvars,
-						[ 'ew_cancel' => 'true' ] ) ),
-				'TransactionType'  => \Eway\Rapid\Enum\TransactionType::PURCHASE,
-				'Payment'          => [
-					'TotalAmount'        => $finalAmount,
-					'CurrencyCode'       => $form_values["currency"],
-					'InvoiceNumber'      => $form_values["invoiceNumber"],
-					'InvoiceDescription' => $form_values["invoiceDescription"],
-					'InvoiceReference'   => $form_values["invoiceReference"],
-				],
-				'Items'            => [
-					[
-						'UnitCost' => ( $form_values["price"] * 100 ),
-						'Quantity' => ( ! empty( $form_values['qty'] ) ? (int) $form_values['qty'] : 1 ),
-						'Tax'      => ( ! empty( $form_values['tax'] ) ? (int) ( $form_values["tax"] * 100 ) : 0 ),
+				$transaction = [
+					'RedirectUrl'      => $returnurl . '?' . http_build_query( $queryvars ),
+					'CancelUrl'        => $returnurl . '?' . http_build_query( array_merge( $queryvars,
+							[ 'ew_cancel' => 'true' ] ) ),
+					'TransactionType'  => \Eway\Rapid\Enum\TransactionType::PURCHASE,
+					'Payment'          => [
+						'TotalAmount'        => $finalAmount,
+						'CurrencyCode'       => $form_values["currency"],
+						'InvoiceNumber'      => $form_values["invoiceNumber"],
+						'InvoiceDescription' => $form_values["invoiceDescription"],
+						'InvoiceReference'   => $form_values["invoiceReference"],
 					],
-				],
-				'Capture'          => TRUE,
-				'SaveCustomer'     => TRUE,
-				'CustomerReadOnly' => TRUE,
-			];
+					'Items'            => [
+						[
+							'UnitCost' => ( $form_values["price"] * 100 ),
+							'Quantity' => ( ! empty( $form_values['qty'] ) ? (int) $form_values['qty'] : 1 ),
+							'Tax'      => ( ! empty( $form_values['tax'] ) ? (int) ( $form_values["tax"] * 100 ) : 0 ),
+						],
+					],
+					'Capture'          => TRUE,
+					'SaveCustomer'     => TRUE,
+					'CustomerReadOnly' => TRUE,
+				];
 
-			mapCustomerDetails( $transaction, $form, $settings );
-			mapShippingDetails( $transaction, $form, $settings );
-			setCustomerCountry( $transaction, $form, $settings );
-			setCustomerState( $transaction, $form, $settings );
+				mapCustomerDetails( $transaction, $form, $settings );
+				mapShippingDetails( $transaction, $form, $settings );
+				setCustomerCountry( $transaction, $form, $settings );
+				setCustomerState( $transaction, $form, $settings );
 
-			$response = $client->createTransaction( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
-
+				$response = $client->createTransaction( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
+			}
 			$transdata['eway_rapid']['response'] = $response;
 			global $processed_meta;
 			$transdata['processed_meta'] = $processed_meta;
@@ -276,6 +299,7 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 		if ( ! empty( $_GET['cf_tp'] ) && ! empty( $_GET['AccessCode'] )
 		     && empty( $transdata['eway_rapid']['checkout'] )
 		) {
+			// query the result
 			$accessCode  = $_GET['AccessCode'];
 			$apiEndPoint = \Eway\Rapid\Client::ENDPOINT_PRODUCTION;
 			if ( $config["sandbox"] ) {
@@ -284,10 +308,11 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 
 			$client   = \Eway\Rapid::createClient( $config["key"], $config["password"], $apiEndPoint );
 			$response = $client->queryTransaction( $accessCode );
-
 			$transactionResponse = $response->Transactions[0];
 
-			if ( $transactionResponse->TransactionStatus ) {
+			// @see https://eway.io/api-v3/?php#transaction-response-messages
+			// for other response code
+			if ( $transactionResponse->ResponseMessage == 'A2000' ) {
 				$transdata['eway_rapid']['checkout'] = $transactionResponse;
 				$customResponse = $client->queryCustomer( $transactionResponse->TokenCustomerID);
 				$customResponse = $customResponse->Customers[0];

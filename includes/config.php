@@ -47,6 +47,20 @@ if( ! is_ssl() ){
 </div>
 
 <div class="caldera-config-group">
+    <label for="{{_id}}_customer">Register Customer Only</label>
+    <div class="caldera-config-field">
+        <input id="{{_id}}_customer" type="checkbox" class="field-config" name="{{_name}}[customer]" value="1" {{#if customer}}checked="checked"{{/if}}>
+    </div>
+</div>
+
+<div class="caldera-config-group">
+    <label>Customer Token ID</label>
+    <div class="caldera-config-field">
+        {{{_field slug="customerTokenID" type="calculation,text,hidden" exclude="system"}}}
+    </div>
+</div>
+
+<div class="caldera-config-group">
 	<label>Price Field</label>
 	<div class="caldera-config-field">
 		{{{_field slug="price" type="calculation,text,hidden" required="true" exclude="system"}}}
