@@ -23,6 +23,7 @@ function cf_eway_rapid_register_processor( $processors ) {
 			'amount',
 			'payment_status',
 			'customer_token',
+			'card_details',
 		],
 	];
 
@@ -288,6 +289,9 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 
 			if ( $transactionResponse->TransactionStatus ) {
 				$transdata['eway_rapid']['checkout'] = $transactionResponse;
+				$customResponse = $client->queryCustomer( $transactionResponse->TokenCustomerID);
+				$customResponse = $customResponse->Customers[0];
+				$transdata['eway_rapid']['customer'] = $customResponse;
 			} else {
 				// fixme the error not right
 				$errors       = preg_split( ',', $transactionResponse->ResponseMessage );
@@ -338,6 +342,7 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 
 	if ( ! empty( $transdata['eway_rapid']['checkout'] ) ) {
 		$transactionResponse = $transdata['eway_rapid']['checkout'];
+		$customerResponse = $transdata['eway_rapid']['customer'];
 
 		$returns = [
 			"transaction_id" => $transactionResponse->TransactionID,
@@ -345,6 +350,7 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 			'amount'         => ( $transactionResponse->TotalAmount / 100 ),
 			'payment_status' => ( $transactionResponse->TransactionStatus ) ? 1 : 0,
 			'customer_token' => $transactionResponse->TokenCustomerID,
+			'card_details'   => $customerResponse->CardDetails->toArray(),
 		];
 
 		$transdata['eway_rapid']['result'] = $returns;
