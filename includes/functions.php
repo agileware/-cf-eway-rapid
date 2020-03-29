@@ -310,8 +310,12 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 			$response = $client->queryTransaction( $accessCode );
 			$transactionResponse = $response->Transactions[0];
 
-			// @see https://eway.io/api-v3/?php#transaction-response-messages
-			// for other response code
+			/**
+			 * Use response code here instead of the transaction status
+			 * Because the transaction status is false for all customer token endpoint
+			 * @see https://eway.io/api-v3/?php#transaction-response-messages
+			 * for other response code
+			 */
 			if ( $transactionResponse->ResponseMessage == 'A2000' ) {
 				$transdata['eway_rapid']['checkout'] = $transactionResponse;
 				$customResponse = $client->queryCustomer( $transactionResponse->TokenCustomerID);

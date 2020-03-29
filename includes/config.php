@@ -51,6 +51,9 @@ if( ! is_ssl() ){
     <div class="caldera-config-field">
         <input id="{{_id}}_customer" type="checkbox" class="field-config" name="{{_name}}[customer]" value="1" {{#if customer}}checked="checked"{{/if}}>
     </div>
+    <p class="description">
+        Store the customer card information without a payment.
+    </p>
 </div>
 
 <div class="caldera-config-group">
