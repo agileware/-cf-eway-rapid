@@ -24,6 +24,8 @@ function cf_eway_rapid_register_processor( $processors ) {
 			'payment_status',
 			'customer_token',
 			'card_details',
+			'card_number',
+			'expired_date'
 		],
 	];
 
@@ -371,7 +373,11 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 
 	if ( ! empty( $transdata['eway_rapid']['checkout'] ) ) {
 		$transactionResponse = $transdata['eway_rapid']['checkout'];
+		/** @var \Eway\Rapid\Model\Customer $customerResponse */
 		$customerResponse = $transdata['eway_rapid']['customer'];
+		$date             = new DateTime();
+		$date->setDate( $customerResponse->CardDetails->ExpiryYear, $customerResponse->CardDetails->ExpiryMonth, 0 );
+		$expired_date = $date->format( 'Y-m-t 23:59:59' );
 
 		$returns = [
 			"transaction_id" => $transactionResponse->TransactionID,
@@ -380,6 +386,8 @@ function cf_eway_rapid_process_payment( $config, $form ) {
 			'payment_status' => ( $transactionResponse->TransactionStatus ) ? 1 : 0,
 			'customer_token' => $transactionResponse->TokenCustomerID,
 			'card_details'   => $customerResponse->CardDetails->toArray(),
+			'card_number'    => $customerResponse->CardDetails->Number,
+			'expired_date'   => $expired_date,
 		];
 
 		$transdata['eway_rapid']['result'] = $returns;
