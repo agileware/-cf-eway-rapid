@@ -323,6 +323,7 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 				$customResponse = $client->queryCustomer( $transactionResponse->TokenCustomerID);
 				$customResponse = $customResponse->Customers[0];
 				$transdata['eway_rapid']['customer'] = $customResponse;
+				cf_eway_rapid_process_meta( $form, $config );
 			} else {
 				// fixme the error not right
 				$errors       = preg_split( ',', $transactionResponse->ResponseMessage );
@@ -357,8 +358,41 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
 }
 
 /**
+ * Directly store the meta data aka magic tag values
+ * Before calling this function, make sure the transaction and customer response is stored in the transient
+ * @param $form array the caldera form
+ * @param $config array the processor config
+ */
+function cf_eway_rapid_process_meta( $form, $config ) {
+	global $transdata;
+	$transactionResponse = $transdata['eway_rapid']['checkout'];
+	/** @var \Eway\Rapid\Model\Customer $customerResponse */
+	$customerResponse = $transdata['eway_rapid']['customer'];
+	$date             = new DateTime();
+	$date->setDate( $customerResponse->CardDetails->ExpiryYear, $customerResponse->CardDetails->ExpiryMonth, 0 );
+	$expired_date = $date->format( 'Y-m-t 23:59:59' );
+
+	$meta = [
+		"transaction_id" => $transactionResponse->TransactionID,
+		'currency_code'  => $config["currency"],
+		'amount'         => ( $transactionResponse->TotalAmount / 100 ),
+		'payment_status' => ( $transactionResponse->TransactionStatus ) ? 1 : 0,
+		'customer_token' => $transactionResponse->TokenCustomerID,
+		'card_details'   => $customerResponse->CardDetails->toArray(),
+		'card_number'    => $customerResponse->CardDetails->Number,
+		'expired_date'   => $expired_date,
+	];
+
+	foreach ( $meta as $key => $value ) {
+		Caldera_Forms::set_submission_meta( $key, $value, $form, $config['processor_id'] );
+	}
+}
+
+/**
  * The processor function for eway
  * Processes the actual payment and returns the payment result
+ *
+ * This function was returning the magic tag values, but it now moves to the pre_processor
  *
  * @param array $config Config array of the processor
  * @param array $form   array of the complete form config structure
@@ -366,34 +400,6 @@ function cf_eway_rapid_setup_payment( $config, $form ) {
  * @return array    array of the transaction result
  */
 function cf_eway_rapid_process_payment( $config, $form ) {
-	global $transdata;
-	if ( ! empty( $transdata['eway_rapid']['result'] ) ) {
-		return $transdata['eway_rapid']['result'];
-	}
-
-	if ( ! empty( $transdata['eway_rapid']['checkout'] ) ) {
-		$transactionResponse = $transdata['eway_rapid']['checkout'];
-		/** @var \Eway\Rapid\Model\Customer $customerResponse */
-		$customerResponse = $transdata['eway_rapid']['customer'];
-		$date             = new DateTime();
-		$date->setDate( $customerResponse->CardDetails->ExpiryYear, $customerResponse->CardDetails->ExpiryMonth, 0 );
-		$expired_date = $date->format( 'Y-m-t 23:59:59' );
-
-		$returns = [
-			"transaction_id" => $transactionResponse->TransactionID,
-			'currency_code'  => $config["currency"],
-			'amount'         => ( $transactionResponse->TotalAmount / 100 ),
-			'payment_status' => ( $transactionResponse->TransactionStatus ) ? 1 : 0,
-			'customer_token' => $transactionResponse->TokenCustomerID,
-			'card_details'   => $customerResponse->CardDetails->toArray(),
-			'card_number'    => $customerResponse->CardDetails->Number,
-			'expired_date'   => $expired_date,
-		];
-
-		$transdata['eway_rapid']['result'] = $returns;
-
-		return $returns;
-	}
 }
 
 /**
