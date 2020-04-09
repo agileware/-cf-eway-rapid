@@ -50,13 +50,11 @@ function cf_eway_rapid_restore_meta( $form, $referrer, $process_id ) {
 
 function getFinalAmountOfInvoice( $settings, $form ) {
 	$amount =  $settings["price"]? $settings['price'] : 0;
-	$qty    = ( ( ! empty( $settings['qty'] ) )
-		? (int) $settings['qty'] : 1 );
-	$tax    = ( ( ! empty( $settings['tax'] ) )
-		? (int) $settings["tax"] : 0 );
-	$amount = ( $amount * $qty ) + $tax;
+	$qty    = ( ( ! empty( $settings['qty'] ) ) ? (int) $settings['qty'] : 1 );
+	$tax    = ( ( ! empty( $settings['tax'] ) ) ?       $settings["tax"] : 0 );
+	$amount = round(( $amount * $qty + $tax ) * 100);
 
-	return ( $amount * 100 );
+	return $amount;
 }
 
 /**
