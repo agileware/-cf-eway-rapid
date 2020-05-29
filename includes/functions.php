@@ -15,7 +15,6 @@ function cf_eway_rapid_register_processor( $processors ) {
 		"icon"          => CF_EWAY_RAPID_URL . "icon.png",
 		"single"        => TRUE,
 		"pre_processor" => 'cf_eway_rapid_setup_payment',
-		"processor"     => 'cf_eway_rapid_process_payment',
 		"template"      => CF_EWAY_RAPID_PATH . "includes/config.php",
 		"magic_tags"    => [
 			'transaction_id',
@@ -420,7 +419,21 @@ function cf_eway_rapid_redirect_toeway( $url, $form, $config, $processid ) {
 	) {
 		$response = $transdata['eway_rapid']['response'];
 
-		return $response->SharedPaymentUrl;
+		$errors = $transdata['eway_rapid']['response']->getErrors();
+
+		if ($errors) {
+			$request_type = get_class($response);
+			$request_type = preg_replace('/^.*\W(\w+?)(Response)?$/', '$1', $request_type);
+			$request_type = preg_replace('/\B(\p{Lu})/', ' $1', $request_type);
+			$transdata['type'] = 'error';
+			$transdata['note'] .= "Could not {$request_type} in eWAY: <ul>";
+			foreach($errors as $error) {
+				$transdata['note'] .= sprintf('<li>%s: %s</li>', $error, htmlentities(\Eway\Rapid::getMessage($error)));
+			}
+			$transdata['note'] .= '</ul>';
+		} else {
+			$url = $response->SharedPaymentUrl;
+		}
 	}
 
 	return $url;
