@@ -99,7 +99,6 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 					'RedirectUrl'      => $returnurl . '?' . http_build_query( $queryvars ),
 					'CancelUrl'        => $returnurl . '?' . http_build_query( array_merge( $queryvars,
 							[ 'ew_cancel' => 'true' ] ) ),
-					'TokenCustomerID' => $form_values['customerTokenID'],
 					'CustomerReadOnly' => TRUE,
 					'SaveCustomer'     => TRUE,
 				];
@@ -110,6 +109,7 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 				setCustomerState( $customer, $form, $settings );
 				$transaction = array_merge( $transaction, $customer['Customer'] );
 				if ( $form_values['customerTokenID'] ) {
+					$transaction['TokenCustomerID'] = $form_values['customerTokenID'];
 					$response = $client->updateCustomer( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
 				} else {
 					$response = $client->createCustomer( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
