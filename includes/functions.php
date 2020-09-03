@@ -107,7 +107,8 @@ function cf_eway_rapid_set_redirect_url( $transdata, $form, $referrer, $processi
 				setCustomerCountry( $customer, $form, $settings );
 				setCustomerState( $customer, $form, $settings );
 				$transaction = array_merge( $transaction, $customer['Customer'] );
-				if ( $form_values['customerTokenID'] ) {
+				// the token sometime will be a magic tag - in this case, it means no token
+				if ( $form_values['customerTokenID'] && strpos($form_values['customerTokenID'], '{') !== 0 ) {
 					$transaction['TokenCustomerID'] = $form_values['customerTokenID'];
 					$response = $client->updateCustomer( \Eway\Rapid\Enum\ApiMethod::RESPONSIVE_SHARED, $transaction );
 				} else {
