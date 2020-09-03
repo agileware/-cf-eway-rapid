@@ -366,7 +366,7 @@ function cf_eway_rapid_process_meta( $form, $config ) {
 	/** @var \Eway\Rapid\Model\Customer $customerResponse */
 	$customerResponse = $transdata['eway_rapid']['customer'];
 	$date             = new DateTime();
-	$date->setDate( $customerResponse->CardDetails->ExpiryYear, $customerResponse->CardDetails->ExpiryMonth, 0 );
+	$date->setDate( $customerResponse->CardDetails->ExpiryYear, $customerResponse->CardDetails->ExpiryMonth, 1 );
 	$expired_date = $date->format( 'Y-m-t 23:59:59' );
 
 	$meta = [
